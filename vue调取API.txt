@@ -1,0 +1,214 @@
+//vue 调取数据时 先将axios 和qs 安装上
+//安装 axios  $ npm install axios
+//安装 qs（序列化参数） $ npm install qs
+//之后定义fetch文件夹下的api.js文件（最下面有基本配置）
+//引用api.js的基本页面
+//在页面调取数据时
+例如：
+<template>
+  <div class="hello">
+    <table border="" cellspacing="" cellpadding="">
+     <tr>
+        <th>id</th>
+        <th>client_name</th>
+        <th>client_address</th>
+        <th>designer_code</th>
+        <th>created_at</th>
+      </tr>
+     <tr v-for="good in goods">
+        <td>{{good.id}}</td>
+        <td>{{good.name}}</td>
+        <td>{{good.percentage}}</td>
+        <td>{{good.shop}}</td>
+        <td>{{good.sum}}</td>
+      </tr>
+
+    </table>
+  </div>
+</template>
+
+<script>
+import api from '../fetch/api'
+export default {
+  name: 'hello',
+  data () {
+    return {
+      goods: []
+    }
+  },
+  mounted(){
+    //定义data数据 请求的参数值（以对象的方式来调取）
+    let data = {
+      cat_id: 459
+    };
+  //页面中调取api的方法 获取data数据 赋值到页面中  注意使用箭头函数   api.GetDailyPushCategoryGoodlist(data).then((res) => {
+      console.log(res.data);
+      //赋值goods
+      this.goods = res.data;
+    }).catch(error => {
+      console.log(error);
+    })
+  },
+
+}
+</script>
+
+
+//     api.js 的基本配置页面
+
+
+
+
+import axios from 'axios'
+import qs from 'qs'
+// import * as _ from '../util/tool'
+
+// axios 配置 （定义请求时间不能超过5000ms否则报错）
+axios.defaults.timeout = 5000;
+//定义主题POST （当请求post方式的数据时  默认添加请求头 意思是说将用模拟input的提交的方式去请求api的数据）
+axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8';
+//基础url （定义请求时的url默认前缀）
+axios.defaults.baseURL = 'https://designer.pinhui100.com/';
+
+//POST传参序列化 （将参数去序列化 提交到服务器）
+//开始时拦截器 去拦截 判断你的请求方式 根据你的请求方式将你的参数序列化
+axios.interceptors.request.use((config) => {
+  // if(config.method  === 'post'){
+  //   //处理数据
+  //     config.data = qs.stringify(config.data);
+  // }
+  var method = config.method;
+  switch (method) {
+    case 'post':
+      config.data = qs.stringify(config.data);
+      break;
+    case 'put':
+      config.data = qs.stringify(config.data);
+      break;
+    case 'patch':
+      config.data = qs.stringify(config.data);
+      break;
+    case 'get':
+      config.data = config.data;
+      break;
+    case 'delete':
+      config.data = config.data;
+      break;
+  }
+  return config;
+},(error) =>{
+  _.toast("错误的传参", 'fail');
+  return Promise.reject(error);
+});
+
+//返回状态判断 （请求到之后 再次拦截 判断状态值 返回状态值 200请求成功 其他未成功 直接报错）
+axios.interceptors.response.use((res) =>{
+  //判断code码是不是200
+  if(res.status != 200){
+    return Promise.reject(res);
+  }
+  //返回数据 （返回得到的数据）
+  return res;
+}, (error) => {
+  _.toast("网络异常", 'fail');
+  return Promise.reject(error);
+});
+
+//对你的请求方式去做函数 将请求简单化 和  返回请求的状态值  成功或者失败
+
+//POST请求方法
+export function post(url, params) {
+  return new Promise((resolve, reject) => {
+    //进行post请求
+    axios.post(url, params)
+      .then(response => {
+        //返回response
+        resolve(response.data);
+      }, err => {
+        reject(err);
+      })
+      .catch((error) => {
+        reject(error)
+      })
+  })
+};
+
+//PUT 请求方法
+export function put(url, params) {
+  return new Promise((resolve, reject) => {
+    //进行post请求
+    axios.put(url, params)
+      .then(response => {
+        //返回response
+        resolve(response.data);
+      }, err => {
+        reject(err);
+      })
+      .catch((error) => {
+        reject(error)
+      })
+  })
+}
+
+//PATHCH 请求方法
+export function patch(url, params) {
+  return new Promise((resolve, reject) => {
+    //进行patch请求
+    axios.patch(url, params)
+      .then(response => {
+        //返回response
+        resolve(response.data);
+      }, err => {
+        reject(err);
+      })
+      .catch((error) => {
+        reject(error)
+      })
+  })
+}
+
+//GET 请求方法
+export function get(url, params) {
+  return new Promise((resolve, reject) => {
+    //进行delete请求
+    axios.get(url, params)
+      .then(response => {
+        //返回response
+        resolve(response.data);
+      }, err => {
+        reject(err);
+      })
+      .catch((error) => {
+        reject(error)
+      })
+  })
+};
+
+//DELETE 请求方法
+export function del(url, params) {
+  return new Promise((resolve, reject) => {
+    //进行delete请求
+    axios.delete(url, params)
+      .then(response => {
+        //返回response
+        resolve(response.data);
+      }, err => {
+        reject(err);
+      })
+      .catch((error) => {
+        reject(error)
+      }) 
+  })
+}
+
+//定义api列表
+export default {
+  //定义请求函数 获取你想要数据
+  /**
+   * 每日推指定分类商品列表
+   */
+  GetDailyPushCategoryGoodlist(params) {
+    return post('api/app/dailypush/categorygoodslist', params)
+  },
+
+}
